@@ -40,7 +40,7 @@ def print_timetable(times):
         else:
             continue
 
-    for t in xrange(first, last):
+    for t in xrange(first, last+1):
         print '%2d:00 |' % t,
         for d in xrange(5):
             print '%30s' % str(times[d][t] or '-')[:30],
