@@ -37,12 +37,16 @@ def generate(courses, times, aggregate=None):
 def comparator_free(a):
     return sum([any(x) for x in a])
 
+def comparator_unfree(a):
+    return -comparator_free(a)
+
 def sort_timetables(tables, ordering):
     if not ordering:
         return tables
 
     comparators = {
-        'free': comparator_free
+        'free': comparator_free,
+        'unfree': comparator_unfree,
     }
 
     assert ordering in comparators

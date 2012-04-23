@@ -76,6 +76,7 @@ from optparse import OptionParser
 parser = OptionParser()
 parser.add_option('-n', dest='num_timetables', help='Number of displayed timetables')
 parser.add_option('-f', dest='sorting_order', action='store_const', const='free', help='Sort by number of free days')
+parser.add_option('-F', dest='sorting_order', action='store_const', const='unfree', help='Sort by number of non-free days')
 
 (options, args) = parser.parse_args()
 MAX_OPTIONS = int(options.num_timetables or MAX_OPTIONS)
@@ -84,7 +85,7 @@ SORTING_ORDER = options.sorting_order
 all_classes = {}
 
 if len(args) == 0:
-    print 'Usage: circles <subject> [subject] [subject...]'
+    print 'Usage: circles [options] <subject> [subject] [subject...]'
     sys.exit(1)
 
 subjects = map(lambda x: x.upper(), args)
