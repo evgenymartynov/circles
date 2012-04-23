@@ -3,30 +3,26 @@
 import re, sys
 import urllib
 
+import circles_generator
+
 MAX_OPTIONS = 100
+SORTING_ORDER = None
+
 URL_BASE = r'http://www.timetable.unsw.edu.au/2012/%s.html'
 OFFSET = 6
+DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 tags_re = re.compile(r'<[^>]*>')
 dow_re = re.compile(r'\([^\(]*\)')
 
-valid = 0
-
 def print_timetable(times):
-    global valid
-    valid += 1
-    if valid == MAX_OPTIONS:
-        print 'Reached %d options; not printing out any more.' % MAX_OPTIONS
-    if valid >= MAX_OPTIONS:
-        return
     days = len(times)
     slots = len(times[0])
 
     print '=' * 160
 
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
     print '     ',
     for d in xrange(5):
-        print '%30s' % days[d],
+        print '%30s' % DAYS[d],
     print
     print '-' * 160
 
@@ -46,36 +42,6 @@ def print_timetable(times):
             print '%30s' % str(times[d][t] or '-')[:30],
         print
 
-def generate(courses, times):
-    if courses == []:
-        print_timetable(times)
-        return
-
-    name, course = courses[0]
-    for option in course:
-        valid = True
-        for slot in option:
-            day, start, end = slot
-            for i in xrange(start, end):
-                if times[day][i]:
-                    valid = False
-                    break
-        if not valid:
-            continue
-
-        # Try it
-        for slot in option:
-            day, start, end = slot
-            for i in xrange(start, end):
-                times[day][i] = name
-
-        generate(courses[1:], times)
-
-        for slot in option:
-            day, start, end = slot
-            for i in xrange(start, end):
-                times[day][i] = False
-
 def get_lines(subject):
     url = URL_BASE % subject
     return urllib.urlopen(url)
@@ -85,7 +51,7 @@ def print_classes(classes):
         print '%s\n\t%s\n' % (k, '\n\t'.join(map(str, v)))
 
 def dow_to_int(s):
-    return {'Mon': 0, 'Tue': 1, 'Wed': 2, 'Thu': 3, 'Fri': 4}[s]
+    return DAYS.index(s)
 
 def get_classes(subject):
     lines = map(lambda x: x.strip(), [line for line in get_lines(subject)])
@@ -106,13 +72,22 @@ def get_classes(subject):
 
     return classes
 
+from optparse import OptionParser
+parser = OptionParser()
+parser.add_option('-n', dest='num_timetables', help='Number of displayed timetables')
+parser.add_option('-f', dest='sorting_order', action='store_const', const='free', help='Sort by number of free days')
+
+(options, args) = parser.parse_args()
+MAX_OPTIONS = int(options.num_timetables or MAX_OPTIONS)
+SORTING_ORDER = options.sorting_order
+
 all_classes = {}
 
-if len(sys.argv) < 2:
+if len(args) == 0:
     print 'Usage: circles <subject> [subject] [subject...]'
     sys.exit(1)
 
-subjects = map(lambda x: x.upper(), sys.argv[1:])
+subjects = map(lambda x: x.upper(), args)
 print 'Fetching timetables for', map(lambda x: x.upper(), subjects)
 
 for c in subjects:
@@ -126,6 +101,16 @@ print_classes(all_classes)
 
 stuff = all_classes.items()
 time_slots = [[False] * 24 for i in xrange(5)]
-generate(stuff, time_slots)
+tables = circles_generator.generate(stuff, time_slots)
 
-print 'Got %d timetable options!' % valid
+tables = circles_generator.sort_timetables(tables, SORTING_ORDER)
+
+i = 0
+for t in tables:
+    i += 1
+    if i > MAX_OPTIONS:
+        print 'Reached %d options; not printing out any more.' % MAX_OPTIONS
+        break
+    print_timetable(t)
+
+print 'Got %d timetable options!' % len(tables)
