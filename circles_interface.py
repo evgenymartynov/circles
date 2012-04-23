@@ -65,7 +65,7 @@ def get_classes(subject):
 
     return classes
 
-def process(subjects, MAX_OPTIONS=20, SORTING_ORDER=None):
+def process(subjects, SORTING_ORDER=None):
     all_classes = {}
 
     for c in subjects:

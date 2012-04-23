@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     subjects = map(lambda x: x.upper(), args)
     print 'Fetching timetables for', map(lambda x: x.upper(), subjects)
-    tables = circles_interface.process(subjects, MAX_OPTIONS, SORTING_ORDER)
+    tables = circles_interface.process(subjects, SORTING_ORDER)
 
     i = 0
     for t in tables:
