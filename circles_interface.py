@@ -81,4 +81,10 @@ def process(subjects, SORTING_ORDER=None):
     tables = circles_generator.generate(stuff, time_slots)
     tables = circles_generator.sort_timetables(tables, SORTING_ORDER)
 
+    uniq = []
+    for t in tables:
+        if uniq == [] or uniq[-1] != t:
+            uniq.append(t)
+    tables = uniq
+
     return tables
