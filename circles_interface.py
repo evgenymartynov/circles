@@ -58,6 +58,7 @@ def get_classes(subject):
             times = re.sub(tags_re, '', lines[i+OFFSET], 10)
             # Readability? Fuck that.
             times = [(dow_to_int(time[0]), int(time[1][:2]), int(time[3][:2])) for time in map(lambda x: x.split(), map(lambda x: x.strip(), re.sub(dow_re, '', times).split(', ')))]
+            times = list(set(times))
             classes[name] = classes.get(name, []) + [times]
             i += OFFSET
         else:
@@ -65,7 +66,7 @@ def get_classes(subject):
 
     return classes
 
-def process(subjects, SORTING_ORDER=None):
+def process(subjects, SORTING_ORDER=None, CLASHES=0):
     all_classes = {}
 
     for c in subjects:
@@ -78,7 +79,7 @@ def process(subjects, SORTING_ORDER=None):
 
     stuff = all_classes.items()
     time_slots = [[False] * 24 for i in xrange(5)]
-    tables = circles_generator.generate(stuff, time_slots)
+    tables = circles_generator.generate(stuff, time_slots, CLASHES)
 
     tables.sort()
     uniq = []

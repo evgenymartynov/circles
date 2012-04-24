@@ -9,6 +9,7 @@ if __name__ == '__main__':
 
     parser = OptionParser()
     parser.add_option('-n', dest='num_timetables', help='Number of displayed timetables')
+    parser.add_option('-c', dest='clash_hours', help='Allow for at most clash_hours clashes')
     parser.add_option('-f', dest='sorting_order', action='store_const', const='free', help='Sort by number of free days')
     parser.add_option('-F', dest='sorting_order', action='store_const', const='unfree', help='Sort by number of non-free days')
     parser.add_option('-H', dest='sorting_order', action='store_const', const='hours', help='Sort by ascending number of hours at uni')
@@ -16,6 +17,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
     MAX_OPTIONS = int(options.num_timetables or 100)
     SORTING_ORDER = options.sorting_order
+    CLASHES = min(int(options.clash_hours or 0), 3)
 
     if len(args) == 0:
         print 'Usage: circles [options] <subject> [subject] [subject...]'
@@ -23,7 +25,7 @@ if __name__ == '__main__':
 
     subjects = map(lambda x: x.upper(), args)
     print 'Fetching timetables for', map(lambda x: x.upper(), subjects)
-    tables = circles_interface.process(subjects, SORTING_ORDER)
+    tables = circles_interface.process(subjects, SORTING_ORDER, CLASHES)
 
     i = 0
     for t in tables:
