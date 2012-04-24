@@ -40,6 +40,20 @@ def comparator_free(a):
 def comparator_unfree(a):
     return -comparator_free(a)
 
+def comparator_hours_at_uni(a):
+    hours = 0
+    for day in xrange(5):
+        first, last = None, None
+        for hour in xrange(24):
+            if a[day][hour]:
+                if first is None:
+                    first = hour
+                last = hour
+        if first:
+            hours += last-first + 1
+
+    return hours
+
 def sort_timetables(tables, ordering):
     if not ordering:
         return tables
@@ -47,6 +61,7 @@ def sort_timetables(tables, ordering):
     comparators = {
         'free': comparator_free,
         'unfree': comparator_unfree,
+        'hours': comparator_hours_at_uni,
     }
 
     assert ordering in comparators

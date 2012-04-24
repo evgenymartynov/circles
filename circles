@@ -11,6 +11,7 @@ if __name__ == '__main__':
     parser.add_option('-n', dest='num_timetables', help='Number of displayed timetables')
     parser.add_option('-f', dest='sorting_order', action='store_const', const='free', help='Sort by number of free days')
     parser.add_option('-F', dest='sorting_order', action='store_const', const='unfree', help='Sort by number of non-free days')
+    parser.add_option('-H', dest='sorting_order', action='store_const', const='hours', help='Sort by ascending number of hours at uni')
 
     (options, args) = parser.parse_args()
     MAX_OPTIONS = int(options.num_timetables or 100)
