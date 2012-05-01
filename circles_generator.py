@@ -7,6 +7,10 @@ def generate(courses, times, clashes_allowed, aggregate=None):
     if aggregate is None:
         aggregate = []
 
+    # Short-circuit
+    if len(aggregate) >= 100000:
+        return aggregate
+
     if courses == []:
         aggregate.append(copy.deepcopy(times))
         return aggregate
