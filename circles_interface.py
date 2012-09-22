@@ -64,7 +64,6 @@ def get_classes(subject):
                     raise ValueError('Detected runaway parser while processing subject %s. Contact Evgeny to fix.' % subject)
                 times_line += lines[i+OFFSET+abort_counter] + '\n'
                 abort_counter += 1
-            print subject + ':', times_line.strip()
 
             times = re.sub(tags_re, '', times_line, 10)
             # Readability? Fuck that.
