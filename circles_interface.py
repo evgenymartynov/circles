@@ -1,7 +1,7 @@
 import re, urllib
 import circles_generator
 
-URL_BASE = r'http://www.timetable.unsw.edu.au/2012/%s.html'
+URL_BASE = r'http://www.timetable.unsw.edu.au/2013/%s.html'
 OFFSET = 6
 DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 tags_re = re.compile(r'<[^>]*>')
@@ -53,9 +53,20 @@ def get_classes(subject):
 
     i = 0
     while i < len(lines)-5:
-        if '#S2-' in lines[i]:
+        if '#S1-' in lines[i]:
             name = subject + ' ' + re.sub(tags_re, '', lines[i], 10)
-            times = re.sub(tags_re, '', lines[i+OFFSET], 10)
+
+            times_line    = ''
+            abort_counter = 0
+            while '</td>' not in times_line:
+                # TODO: make this less idiotic
+                if abort_counter > 15:
+                    raise ValueError('Detected runaway parser while processing subject %s. Contact Evgeny to fix.' % subject)
+                times_line += lines[i+OFFSET+abort_counter] + '\n'
+                abort_counter += 1
+            print subject + ':', times_line.strip()
+
+            times = re.sub(tags_re, '', times_line, 10)
             # Readability? Fuck that.
             times = [(dow_to_int(time[0]), int(time[1][:2]), int(time[3][:2])) for time in map(lambda x: x.split(), map(lambda x: x.strip(), re.sub(dow_re, '', times).split(', ')))]
             times = list(set(times))
