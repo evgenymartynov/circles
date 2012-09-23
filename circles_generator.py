@@ -63,6 +63,40 @@ def comparator_hours_at_uni(a):
 
     return hours
 
+def comparator_early_starts(a):
+    def score(hour):
+        hour = 12 - hour
+        return hour*hour if hour > 0 else 0
+
+    penalty = 0
+    for day in xrange(5):
+        for first in xrange(24):
+            if a[day][first]:
+                break
+
+        penalty += score(first)
+
+    return penalty
+
+def comparator_late_finishes(a):
+    def score(hour):
+        hour = hour - 16
+        return hour*hour if hour > 0 else 0
+
+    penalty = 0
+    for day in xrange(5):
+        last = 0
+        for i in xrange(24):
+            if a[day][i]:
+                last = i
+
+        penalty += score(last)
+
+    return penalty
+
+def comparator_lazy_student(a):
+    return comparator_early_starts(a) + comparator_late_finishes(a)
+
 def sort_timetables(tables, ordering):
     if not ordering:
         return tables
@@ -71,6 +105,9 @@ def sort_timetables(tables, ordering):
         'free': comparator_free,
         'unfree': comparator_unfree,
         'hours': comparator_hours_at_uni,
+        'early': comparator_early_starts,
+        'late': comparator_late_finishes,
+        'lazy': comparator_lazy_student,
     }
 
     assert ordering in comparators
