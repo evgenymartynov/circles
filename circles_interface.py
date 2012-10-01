@@ -67,9 +67,10 @@ def get_classes(subject):
 
             times = re.sub(tags_re, '', times_line, 10)
             # Readability? Fuck that.
-            times = [(dow_to_int(time[0]), int(time[1][:2]), int(time[3][:2])) for time in map(lambda x: x.split(), map(lambda x: x.strip(), re.sub(dow_re, '', times).split(', ')))]
+            times = [(dow_to_int(time[0]), int(time[1][:2]), int(time[3][:2])) for time in filter(bool, map(str.split, map(str.strip, re.sub(dow_re, '', times).split(', '))))]
             times = list(set(times))
-            classes[name] = classes.get(name, []) + [times]
+            if times:
+                classes[name] = classes.get(name, []) + [times]
             i += OFFSET
         else:
             i += 1
@@ -82,7 +83,7 @@ def process(subjects, SORTING_ORDER=None, CLASHES=0):
     for c in subjects:
         classes = get_classes(c)
         if not classes:
-            raise ValueError('Could not find subject `%s\'. Aborting.' % c)
+            raise ValueError('Could not find subject `%s\' or it has no times listed. Try removing it or check the spelling.' % c)
         all_classes.update(classes)
 
     # print_classes(all_classes)
