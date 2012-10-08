@@ -1,4 +1,5 @@
 import re, urllib
+from datetime import datetime, timedelta
 import circles_generator
 
 URL_BASE = r'http://www.timetable.unsw.edu.au/2013/%s.html'
@@ -35,9 +36,60 @@ def print_timetable(times):
             print '%30s' % str(times[d][t] or '-')[:30],
         print
 
-def get_lines(subject):
-    url = URL_BASE % subject
-    return urllib.urlopen(url)
+html_page_cache = {}
+def get_classes(subject):
+    def fetch_html():
+        url = URL_BASE % subject
+        return urllib.urlopen(url)
+
+    def fetch_classes():
+        lines = map(lambda x: x.strip(), [line for line in fetch_html()])
+        classes = {}
+
+        i = 0
+        while i < len(lines)-5:
+            if '#S1-' in lines[i]:
+                name = subject + ' ' + re.sub(tags_re, '', lines[i], 10)
+
+                times_line    = ''
+                abort_counter = 0
+                while '</td>' not in times_line:
+                    # TODO: make this less idiotic
+                    if abort_counter > 15:
+                        raise ValueError('Detected runaway parser while processing subject %s. Contact Evgeny to fix.' % subject)
+                    times_line += lines[i+OFFSET+abort_counter] + '\n'
+                    abort_counter += 1
+
+                times = re.sub(tags_re, '', times_line, 10)
+                # Readability? Fuck that.
+                times = [(dow_to_int(time[0]), int(time[1][:2]), int(time[3][:2])) for time in filter(bool, map(str.split, map(str.strip, re.sub(dow_re, '', times).split(', '))))]
+                times = list(set(times))
+                if times:
+                    classes[name] = classes.get(name, []) + [times]
+                i += OFFSET
+            else:
+                i += 1
+
+        return classes
+
+    def expired():
+        if subject not in html_page_cache:
+            return True
+
+        timediff = datetime.now() - html_page_cache[subject][0]
+        return timediff > timedelta(hours=1)
+
+    def update():
+        html_page_cache[subject] = (datetime.now(), fetch_classes())
+
+    def get():
+        return html_page_cache[subject][1]
+
+    if (expired()):
+        print '  ', subject, 'expired, fetching...'
+        update()
+
+    return get()
 
 def print_classes(classes):
     for k, v in classes.iteritems():
@@ -45,37 +97,6 @@ def print_classes(classes):
 
 def dow_to_int(s):
     return DAYS.index(s)
-
-def get_classes(subject):
-    lines = map(lambda x: x.strip(), [line for line in get_lines(subject)])
-
-    classes = {}
-
-    i = 0
-    while i < len(lines)-5:
-        if '#S1-' in lines[i]:
-            name = subject + ' ' + re.sub(tags_re, '', lines[i], 10)
-
-            times_line    = ''
-            abort_counter = 0
-            while '</td>' not in times_line:
-                # TODO: make this less idiotic
-                if abort_counter > 15:
-                    raise ValueError('Detected runaway parser while processing subject %s. Contact Evgeny to fix.' % subject)
-                times_line += lines[i+OFFSET+abort_counter] + '\n'
-                abort_counter += 1
-
-            times = re.sub(tags_re, '', times_line, 10)
-            # Readability? Fuck that.
-            times = [(dow_to_int(time[0]), int(time[1][:2]), int(time[3][:2])) for time in filter(bool, map(str.split, map(str.strip, re.sub(dow_re, '', times).split(', '))))]
-            times = list(set(times))
-            if times:
-                classes[name] = classes.get(name, []) + [times]
-            i += OFFSET
-        else:
-            i += 1
-
-    return classes
 
 def process(subjects, SORTING_ORDER=None, CLASHES=0):
     all_classes = {}
