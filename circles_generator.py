@@ -39,7 +39,17 @@ def generate(courses, times, clashes_allowed, aggregate=None):
 
         generate(courses[1:], times, clashes_allowed - clash_amount, aggregate)
 
-        for a, b, v in oldvals:
+        # XXX
+        # We use [::-1] to go through recovery backwards.
+        # This is because self-clashing subjects, for example ENGG100,
+        # would overwrite the same timeslot more than once when applying
+        # just one particular option set.
+        # The above oldvals.append() will end up putting the /new/
+        # partially-applied timeslot after the previous, original
+        # timeslot.
+        # By reversing oldvals[], we fix that issue... hopefully.
+        # We *should* revert the timesets to the original state.
+        for a, b, v in oldvals[::-1]:
             times[a][b] = v
     return aggregate
 
