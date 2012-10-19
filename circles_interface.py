@@ -1,6 +1,10 @@
-import re, urllib
+import re, urllib, os
 from datetime import datetime, timedelta
 import circles_generator
+
+from tempfile import mkstemp
+from subprocess import Popen as popen, PIPE
+import json
 
 URL_BASE = r'http://www.timetable.unsw.edu.au/2013/%s.html'
 OFFSET = 6
@@ -89,7 +93,53 @@ def get_classes(subject):
         print '  ', subject, 'expired, fetching...'
         update()
 
-    return get()
+    results = get()
+    if not results:
+        raise ValueError('Could not find subject `%s\' or it has no times listed. Try removing it or check the spelling.' % c)
+    return results
+
+def process_v2(subjects, SORTING_ORDER=None, CLASHES=0, NUM_RESULTS=0):
+    def make_subject_file():
+        data = map(get_classes, subjects)
+
+        fd, fname = mkstemp(suffix='.crcl')
+        def pr(*args):
+            os.write(fd, ' '.join(map(unicode, args)) + '\n')
+
+        pr(len(subjects), 13)
+
+        for di in xrange(len(data)):
+            pr('%s' % subjects[di])
+            d = data[di]
+
+            classes = []
+
+            for k,v in d.iteritems():
+                nm = k.split(' ', 1)[1]
+                for t in v:
+                    classes.append((nm, t))
+
+            pr('  %d' % len(classes))
+            for c in classes:
+                pr('    %s' % c[0])
+                pr('      %d' % len(c[1]))
+                for t in c[1]:
+                    dow = DAYS[t[0]]
+                    pr('        %s %d-%d' % (dow, t[1], t[2]))
+
+        os.close(fd)
+        return fname
+
+    fname = make_subject_file()
+    args = ['circles-generator', fname, SORTING_ORDER, str(NUM_RESULTS)]
+    stream = popen(args, stdout=PIPE)
+
+    num_tables = int(stream.stdout.readline())
+    data = stream.stdout.readline()
+
+    os.unlink(fname)
+
+    return num_tables, json.loads(data)
 
 def print_classes(classes):
     for k, v in classes.iteritems():
@@ -103,8 +153,6 @@ def process(subjects, SORTING_ORDER=None, CLASHES=0):
 
     for c in subjects:
         classes = get_classes(c)
-        if not classes:
-            raise ValueError('Could not find subject `%s\' or it has no times listed. Try removing it or check the spelling.' % c)
         all_classes.update(classes)
 
     # print_classes(all_classes)
