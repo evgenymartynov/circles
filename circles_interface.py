@@ -131,7 +131,7 @@ def process_v2(subjects, SORTING_ORDER=None, CLASHES=0, NUM_RESULTS=0):
         return fname
 
     fname = make_subject_file()
-    args = ['circles-generator', fname, SORTING_ORDER, str(NUM_RESULTS)]
+    args = ['circles-generator', fname, SORTING_ORDER, str(NUM_RESULTS), str(CLASHES)]
     stream = popen(args, stdout=PIPE)
 
     num_tables = int(stream.stdout.readline())
