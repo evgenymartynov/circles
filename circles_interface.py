@@ -12,6 +12,12 @@ DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 tags_re = re.compile(r'<[^>]*>')
 dow_re = re.compile(r'\([^\(]*\)')
 
+class CirclesError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return self.value
+
 def print_timetable(times):
     days = len(times)
     slots = len(times[0])
@@ -60,7 +66,7 @@ def get_classes(subject):
                 while '</td>' not in times_line:
                     # TODO: make this less idiotic
                     if abort_counter > 15:
-                        raise ValueError('Detected runaway parser while processing subject %s. Contact Evgeny to fix.' % subject)
+                        raise CirclesError('Detected runaway parser while processing subject %s. Contact Evgeny to fix.' % subject)
                     times_line += lines[i+OFFSET+abort_counter] + '\n'
                     abort_counter += 1
 
@@ -95,7 +101,7 @@ def get_classes(subject):
 
     results = get()
     if not results:
-        raise ValueError('Could not find subject `%s\' or it has no times listed. Try removing it or check the spelling.' % c)
+        raise CirclesError('Could not find subject `%s\' or it has no times listed. Try removing it or check the spelling.' % c)
     return results
 
 def process_v2(subjects, SORTING_ORDER=None, CLASHES=0, NUM_RESULTS=0):
