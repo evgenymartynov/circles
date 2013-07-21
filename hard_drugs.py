@@ -180,9 +180,18 @@ def fetch_classes(subject):
   # Data as returned by cook() has the choices spread out.
   # Combine them into lists to get the desired output format.
   classes = {}
+  hatelife = {}
   for d in data:
     name = subject + ' ' + d['name']
-    classes[name] = classes.get(name, []) + [d['time']]
+    time = d['time']
+
+    # YES I KNOW THIS SUCKS GET OFF MY BACK
+    if str(time) in hatelife.get(name, set()):
+      continue
+    hatelife[name] = hatelife.get(name, set())
+    hatelife[name].add(str(time))
+
+    classes[name] = classes.get(name, []) + [time]
 
   return classes
 
