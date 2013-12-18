@@ -48,7 +48,7 @@ def transform(bundle):
   activity = bundle[u'Activity']
 
   date = bundle[u'Day/Start Time']
-  matches = re.findall(r'(\w{3}) (\d{2}):\d{2} - (\d{2}):\d{2} \(Weeks:([^)]+)\)', date)
+  matches = re.findall(r'(\w{3}) (\d{2}):\d{2} - (\d{2}):\d{2}\s*\(Weeks:([^)]+)\)', date)
 
   # At this point, matches is of form
   # [(u'Wed', u'15', u'16', u'2-9,10-13'), (u'Wed', u'16', u'18', u'2-9,10-13')]
